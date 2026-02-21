@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 date_default_timezone_set('Asia/Jakarta');
 
 $action = $_GET['action'] ?? '';
-$printer = "EPSONL121";
+$printer = "EPSON L120 Series";
 $uploadsDir = __DIR__ . "/uploads/";
 $logsDir = __DIR__ . "/logs/";
 
@@ -158,16 +158,38 @@ elseif ($action == 'print_file') {
     
     // Execute print command asynchronously
     $sumatraPdfPath = 'C:\\Users\\LENOVO\\AppData\\Local\\SumatraPDF\\SumatraPDF.exe';
-    $printer = 'EPSONL121';
+    $printer = 'EPSON L120 Series';
     
-    // Properly escape backslashes for PowerShell
-    $escapedJobFile = str_replace('\\', '\\\\', $jobFile);
+    // Create a temporary PowerShell script to avoid escaping issues
+    $tempDir = sys_get_temp_dir();
+    $scriptFile = $tempDir . 'print_' . uniqid() . '.ps1';
     
-    // Use properly escaped paths in PowerShell command
-    $command = 'powershell -Command "Start-Process -FilePath \'' . $sumatraPdfPath . '\' -ArgumentList \'-print-to \\\\"' . $printer . '\\\\\" \\\\"' . $escapedJobFile . '\\\\"\'  -WindowStyle Hidden"';
+    // Create PowerShell script with properly escaped paths
+    $escapedJobFile = str_replace("'", "''", $jobFile);
+    $escapedPrinter = str_replace("'", "''", $printer);
     
-    // Execute command and capture any output
-    $output = shell_exec($command . ' 2>&1');
+    $scriptContent = "& 'C:\\Users\\LENOVO\\AppData\\Local\\SumatraPDF\\SumatraPDF.exe' -print-to '" . $escapedPrinter . "' '" . $escapedJobFile . "' -silent\n";
+    
+    // Write script to file
+    if (file_put_contents($scriptFile, $scriptContent)) {
+        // Execute PowerShell script
+        $command = 'powershell -ExecutionPolicy Bypass -NoProfile -File "' . $scriptFile . '" 2>&1';
+        $output = shell_exec($command);
+        
+        // Log execution output if any
+        if (!empty($output)) {
+            addLog("Print command output: " . trim($output), 'debug');
+        }
+        
+        // Delete temporary script file after execution (async)
+        $deleteScriptCmd = 'powershell -NoProfile -Command "Start-Sleep -Milliseconds 500; Remove-Item -Path \'' . str_replace("'", "''", $scriptFile) . '\' -Force -ErrorAction SilentlyContinue"';
+        pclose(popen($deleteScriptCmd, "r"));
+    } else {
+        addLog("Print failed: Cannot create temp script - $filename", 'error');
+        $_SESSION['files'][$jobId]['status'] = 'failed';
+        echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan saat menyiapkan pencetakan']);
+        exit;
+    }
     
     if (!file_exists($jobFile)) {
         // File doesn't exist before printing - return error
@@ -177,8 +199,12 @@ elseif ($action == 'print_file') {
         exit;
     }
     
-    // Log print request (file will be auto-deleted after printing)
-    addLog("Print started: $filename (Session: " . session_id() . ")", 'success');
+    // Log print request with additional debug info
+    $debugInfo = "Printer: $printer | File: $jobFile | Path exists: " . (file_exists($jobFile) ? 'YES' : 'NO');
+    if (!empty($output)) {
+        $debugInfo .= " | Output: " . substr($output, 0, 100);
+    }
+    addLog("Print started: $filename (Session: " . session_id() . ") - $debugInfo", 'success');
     
     echo json_encode(['success' => true, 'message' => 'Pencetakan dimulai...']);
     exit;
@@ -219,6 +245,52 @@ elseif ($action == 'check_status') {
             'completed' => true,
             'message' => 'Print selesai!'
         ]);
+    }
+    exit;
+}
+elseif ($action == 'cancel_print') {
+    $jobId = $_POST['job_id'] ?? '';
+    
+    if (empty($jobId)) {
+        echo json_encode(['success' => false, 'message' => 'Job ID tidak ditemukan']);
+        exit;
+    }
+    
+    $jobFile = $uploadsDir . $jobId;
+    
+    // Check ownership - only file owner can cancel
+    if (!isset($_SESSION['files'][$jobId]) || $_SESSION['files'][$jobId]['owner_session'] !== session_id()) {
+        echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses untuk membatalkan print ini']);
+        exit;
+    }
+    
+    // If file exists, cancel the print job and delete the file
+    if (file_exists($jobFile)) {
+        // Try to kill SumatraPDF process for this file (best effort)
+        $escapedJobFile = str_replace("'", "''", $jobFile);
+        $killCommand = 'powershell -NoProfile -Command "Get-Process SumatraPDF -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq \'SumatraPDF\' } | Stop-Process -Force -ErrorAction SilentlyContinue"';
+        pclose(popen($killCommand, "r"));
+        
+        // Delete the file
+        if (unlink($jobFile)) {
+            // Update session
+            if (isset($_SESSION['files'][$jobId])) {
+                $_SESSION['files'][$jobId]['status'] = 'cancelled';
+            }
+            
+            // Clear last job if matches
+            if (isset($_SESSION['last_job']) && $_SESSION['last_job']['job_id'] == $jobId) {
+                unset($_SESSION['last_job']);
+            }
+            
+            addLog("Print cancelled: $jobId (Session: " . session_id() . ")", 'info');
+            echo json_encode(['success' => true, 'message' => 'Pencetakan dibatalkan']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Gagal membatalkan print']);
+        }
+    } else {
+        addLog("Cancel print failed: File not found - $jobId", 'error');
+        echo json_encode(['success' => false, 'message' => 'File tidak ditemukan atau sudah selesai diprint']);
     }
     exit;
 }

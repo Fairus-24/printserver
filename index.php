@@ -7,7 +7,7 @@ ini_set('display_errors', 0);
 date_default_timezone_set('Asia/Jakarta');
 
 // Configuration
-$printer = 'EPSONL121';
+$printer = 'EPSON L120 Series';
 $uploadsDir = __DIR__ . '/uploads/';
 $logsDir = __DIR__ . '/logs/';
 $sumatraPdfPath = 'C:\\Users\\LENOVO\\AppData\\Local\\SumatraPDF\\SumatraPDF.exe';
@@ -431,6 +431,16 @@ if (isset($_SESSION['last_job'])) {
             color: #065f46;
         }
 
+        .file-status.done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .file-status.cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         @keyframes pulse {
             0%, 100% {
                 opacity: 1;
@@ -467,6 +477,23 @@ if (isset($_SESSION['last_job'])) {
         .btn-print:hover {
             background: #059669;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-print:disabled {
+            background: #cbd5e1;
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-cancel {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
         .btn-delete {
@@ -694,7 +721,7 @@ if (isset($_SESSION['last_job'])) {
 
         <!-- Footer -->
         <footer>
-            <i class="fas fa-server"></i> FIK Print Server | Printer: <strong>EPSONL121</strong> | 
+            <i class="fas fa-server"></i> FIK Print Server | Printer: <strong>EPSON L120 Series</strong> | 
             <span id="footerTime">20/02/2026 22:39:25</span>
         </footer>
     </div>
@@ -737,24 +764,69 @@ if (isset($_SESSION['last_job'])) {
                     queueCountSpan.textContent = data.queue_count;
                     systemStatusSpan.textContent = data.queue_count > 0 ? 'Printing' : 'Ready';
                     
-                    fileGrid.innerHTML = data.files.map(file => `
-                        <div class="file-card">
-                            <span class="file-icon"><i class="fas fa-file-pdf"></i></span>
-                            <div class="file-name" title="${htmlEscape(file.originalName)}">
-                                ${htmlEscape(file.originalName)}
-                            </div>
-                            <div class="file-size">${formatFileSize(file.size)}</div>
-                            <div class="file-status ${file.status}">${file.status.toUpperCase()}</div>
-                            <div class="file-actions">
+                    fileGrid.innerHTML = data.files.map(file => {
+                        // Determine button display based on status
+                        let actionButtons = '';
+                        
+                        if (file.status === 'printing') {
+                            // Show Cancel button only for printing files
+                            actionButtons = `
+                                <button class="btn btn-cancel" onclick="cancelPrint('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            `;
+                        } else if (file.status === 'completed' || file.status === 'done') {
+                            // Show delete only for completed files
+                            actionButtons = `
+                                <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            `;
+                        } else if (file.status === 'cancelled') {
+                            // Show delete only for cancelled files
+                            actionButtons = `
+                                <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            `;
+                        } else {
+                            // Show Print and Delete for ready files
+                            actionButtons = `
                                 <button class="btn btn-print" onclick="printFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-print"></i> Print
                                 </button>
                                 <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
+                            `;
+                        }
+                        
+                        // Determine status display text
+                        let statusText = file.status.toUpperCase();
+                        if (file.status === 'done' || file.status === 'completed') {
+                            statusText = '✓ DONE';
+                        } else if (file.status === 'printing') {
+                            statusText = '⟳ PRINTING';
+                        } else if (file.status === 'cancelled') {
+                            statusText = '✕ CANCELLED';
+                        } else if (file.status === 'ready') {
+                            statusText = '● READY';
+                        }
+                        
+                        return `
+                            <div class="file-card">
+                                <span class="file-icon"><i class="fas fa-file-pdf"></i></span>
+                                <div class="file-name" title="${htmlEscape(file.originalName)}">
+                                    ${htmlEscape(file.originalName)}
+                                </div>
+                                <div class="file-size">${formatFileSize(file.size)}</div>
+                                <div class="file-status ${file.status}">${statusText}</div>
+                                <div class="file-actions">
+                                    ${actionButtons}
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     queueCountSpan.textContent = '0';
                     systemStatusSpan.textContent = 'Ready';
@@ -808,6 +880,34 @@ if (isset($_SESSION['last_job'])) {
             .then(res => res.json())
             .then(data => {
                 alert(data.success ? '✓ Pencetakan dimulai!' : '✗ ' + (data.message || 'Gagal'));
+                updateFileGrid();
+                updateLogs();
+                // Update more frequently while printing
+                clearInterval(printCheckInterval);
+                printCheckInterval = setInterval(() => {
+                    updateFileGrid();
+                    updateLogs();
+                }, 1000); // Update every 1 second while printing
+            });
+        }
+    }
+
+    // Cancel print
+    function cancelPrint(filename) {
+        if (confirm('Batalkan pencetakan file ini?')) {
+            fetch('api.php?action=cancel_print', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'job_id=' + encodeURIComponent(filename)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.success ? '✓ Pencetakan dibatalkan!' : '✗ ' + (data.message || 'Gagal'));
+                clearInterval(printCheckInterval);
+                printCheckInterval = setInterval(() => {
+                    updateFileGrid();
+                    updateLogs();
+                }, 5000); // Back to normal interval
                 updateFileGrid();
                 updateLogs();
             });
@@ -955,9 +1055,17 @@ if (isset($_SESSION['last_job'])) {
     }, 1000);
 
     // Initialize
+    let printCheckInterval; // Global variable for print checking interval
+    
     updateFileGrid();
     updateLogs();
-    setInterval(updateFileGrid, 5000);
+    
+    // Setup normal update intervals
+    printCheckInterval = setInterval(() => {
+        updateFileGrid();
+        updateLogs();
+    }, 5000);
+    
     setInterval(updateLogs, 3000);
 </script>
 

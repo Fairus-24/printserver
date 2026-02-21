@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-$printer = "EPSONL121";
+$printer = "EPSON L120 Series";
 $action = $_GET['action'] ?? '';
 
 if($action == 'check_status') {
