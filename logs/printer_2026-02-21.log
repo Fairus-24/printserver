@@ -55,3 +55,54 @@ Exiting with exit code: 0
 [2026-02-21 07:45:11] [info] Client registered: Tes Ya (Session: mkv85uao9edg59ql4i396kn1n1)
 [2026-02-21 07:46:04] [info] Client registered: Coko (Session: 4dnv0i1n0viq74ogf5dj7tqk4f)
 [2026-02-21 07:53:47] [info] Client registered: Okelah (Session: e7rge0epfccf939mflidspehur)
+[2026-02-21 07:54:29] [success] File uploaded: Dokumen (1).pdf | Client: Okelah (Session: e7rge0epfccf939mflidspehur)
+[2026-02-21 07:54:47] [debug] Print command output: Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Users\LENOVO\AppData\Local\SumatraPDF\SumatraPDF.exe" -print-to "EPSON L120 Series" "C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf" -silent
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 1.56 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintFile2: file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintToDevice: printer: 'EPSON L120 Series', file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2026-02-21 07:54:49] [success] Print started: Dokumen (1).pdf | Client: Okelah (Session: e7rge0epfccf939mflidspehur) - Printer: EPSON L120 Series | File: C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf | Path exists: YES | Output: Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Users\LENOVO\AppData\Local\SumatraPDF\SumatraPDF.e
+[2026-02-21 08:01:44] [success] File uploaded: Cv.pdf | Client: Tes Ya (Session: mkv85uao9edg59ql4i396kn1n1)
+[2026-02-21 08:01:53] [delete] File deleted: Cv.pdf
+[2026-02-21 08:03:45] [info] Print cancelled: Dokumen (1).pdf (Session: e7rge0epfccf939mflidspehur)
+[2026-02-21 08:08:41] [success] File uploaded: Dokumen (1).pdf | Client: Okelah (Session: e7rge0epfccf939mflidspehur)
+[2026-02-21 08:09:04] [debug] Print command output: Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Users\LENOVO\AppData\Local\SumatraPDF\SumatraPDF.exe" -print-to "EPSON L120 Series" "C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf" -silent
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 8.89 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintFile2: file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintToDevice: printer: 'EPSON L120 Series', file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2026-02-21 08:09:05] [info] Print file deleted from queue: Dokumen (1).pdf
+[2026-02-21 08:09:09] [error] Print failed: File not found - Dokumen (1).pdf
+[2026-02-21 08:14:04] [success] File uploaded: Dokumen (1).pdf | Client: Okelah (Session: e7rge0epfccf939mflidspehur)
+[2026-02-21 08:14:09] [debug] Print command output: Starting SumatraPDF 3.5.2, GetCommandLineW():
+"C:\Users\LENOVO\AppData\Local\SumatraPDF\SumatraPDF.exe" -print-to "EPSON L120 Series" "C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf" -silent
+OpenEmbeddedFilesArchive: opened archive
+LoadSettings() took 1.62 ms
+ParseTranslationsTxt: 17632 lines, nStrings: 372
+PrintFile: file: 'C:\xampp\htdocs\printserver/uploads/Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintFile2: file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf', printer: 'EPSON L120 Series'
+PrintToDevice: printer: 'EPSON L120 Series', file: 'C:\xampp\htdocs\printserver\uploads\Dokumen (1).pdf'
+PrintToDevice: finished ok
+PrintFile2: finished ok
+PrintFile: finished ok
+Finished printing, exitCode: 0
+Exiting with exit code: 0
+[2026-02-21 08:14:10] [info] Print file deleted from queue: Dokumen (1).pdf
+[2026-02-21 08:14:12] [error] Print failed: File not found - Dokumen (1).pdf

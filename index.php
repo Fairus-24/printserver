@@ -442,6 +442,16 @@ if (isset($_SESSION['last_job'])) {
             color: #991b1b;
         }
 
+        .file-countdown {
+            font-size: 12px;
+            color: var(--warning-color);
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 6px;
+        }
+
         @keyframes pulse {
             0%, 100% {
                 opacity: 1;
@@ -507,6 +517,16 @@ if (isset($_SESSION['last_job'])) {
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
+        .btn-retry {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-retry:hover {
+            background: #d97706;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
         .btn-upload {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
@@ -542,9 +562,16 @@ if (isset($_SESSION['last_job'])) {
         }
 
         .log-entry {
-            padding: 6px 0;
+            padding: 8px 10px;
             border-bottom: 1px solid #334155;
             line-height: 1.5;
+            border-left: 4px solid #334155;
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .log-entry:hover {
+            background-color: rgba(100, 116, 139, 0.3);
         }
 
         .log-entry:last-child {
@@ -563,16 +590,87 @@ if (isset($_SESSION['last_job'])) {
             color: #3b82f6;
         }
 
+        /* Client color variants - left border indicates client */
+        .log-entry[data-client-color="color1"] {
+            border-left-color: #ff6b6b;
+        }
+        .log-entry[data-client-color="color2"] {
+            border-left-color: #4ecdc4;
+        }
+        .log-entry[data-client-color="color3"] {
+            border-left-color: #ffd93d;
+        }
+        .log-entry[data-client-color="color4"] {
+            border-left-color: #6bcf7f;
+        }
+        .log-entry[data-client-color="color5"] {
+            border-left-color: #a29bfe;
+        }
+        .log-entry[data-client-color="color6"] {
+            border-left-color: #fd79a8;
+        }
+        .log-entry[data-client-color="color7"] {
+            border-left-color: #55efc4;
+        }
+        .log-entry[data-client-color="color8"] {
+            border-left-color: #fab1a0;
+        }
+
+        /* Client font color variants */
+        .log-entry[data-client-color="color1"] .client-name {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color2"] .client-name {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color3"] .client-name {
+            color: #ffd93d;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color4"] .client-name {
+            color: #6bcf7f;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color5"] .client-name {
+            color: #a29bfe;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color6"] .client-name {
+            color: #fd79a8;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color7"] .client-name {
+            color: #55efc4;
+            font-weight: 600;
+        }
+        .log-entry[data-client-color="color8"] .client-name {
+            color: #fab1a0;
+            font-weight: 600;
+        }
+
         .empty-state {
             text-align: center;
-            padding: 40px;
+            padding: 60px 40px;
             color: var(--text-light);
+            grid-column: 1/-1;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            border: 2px dashed var(--border-color);
         }
 
         .empty-icon {
-            font-size: 64px;
+            font-size: 80px;
             margin-bottom: 20px;
-            opacity: 0.5;
+            opacity: 0.4;
+            color: var(--text-light);
+        }
+
+        .empty-state div:last-child {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-dark);
         }
 
         footer {
@@ -1398,6 +1496,7 @@ if (isset($_SESSION['last_job'])) {
     let printStatusCheckInterval = null;
     let normalUpdateInterval = null;
     let logsOnlyInterval = null;
+    let countdownTimers = {}; // Track countdown timers for done files
 
     // Modal Functions
     function openRulesModal() {
@@ -1561,6 +1660,101 @@ if (isset($_SESSION['last_job'])) {
         return div.innerHTML;
     }
 
+    // Get color ID for client based on name hash
+    function getClientColorClass(clientName) {
+        if (!clientName || clientName === 'Unknown') {
+            return 'color-neutral';
+        }
+        
+        // Simple hash function to get consistent color for same client
+        let hash = 0;
+        for (let i = 0; i < clientName.length; i++) {
+            hash = ((hash << 5) - hash) + clientName.charCodeAt(i);
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        
+        // Map hash to 8 colors
+        const colorIndex = Math.abs(hash) % 8 + 1;
+        return `color${colorIndex}`;
+    }
+
+    // Extract client name from log entry
+    function extractClientName(logEntry) {
+        const clientMatch = logEntry.match(/Client:\s*([^|]+?)(?:\s*$|\s*\|)/);
+        if (clientMatch) {
+            return clientMatch[1].trim();
+        }
+        return null;
+    }
+
+    // Format log entry with colored client name (safely)
+    function formatLogEntry(logEntry, clientName) {
+        if (!clientName) {
+            return htmlEscape(logEntry);
+        }
+        
+        // Find and replace the "Client: [name]" part with colored version
+        const clientPattern = new RegExp(`Client:\\s*${escapeRegExp(clientName)}(?=\\s*$|\\s*\\|)`);
+        const parts = logEntry.split(clientPattern);
+        
+        if (parts.length === 2) {
+            // Client name was found - reassemble with coloring
+            return htmlEscape(parts[0]) + 'Client: <span class="client-name">' + 
+                   htmlEscape(clientName) + '</span>' + htmlEscape(parts[1]);
+        } else {
+            // Client name not found - just escape
+            return htmlEscape(logEntry);
+        }
+    }
+
+    // Escape special regex characters
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Update file grid
+    function startCountdownTimer(filename, remainingSeconds) {
+        // Clear existing timer for this file
+        if (countdownTimers[filename]) {
+            clearInterval(countdownTimers[filename]);
+        }
+        
+        // Don't start timer if already expired
+        if (remainingSeconds <= 0) {
+            return;
+        }
+        
+        let remaining = remainingSeconds;
+        const countdownElement = document.getElementById(`countdown-${filename}`);
+        
+        if (!countdownElement) {
+            return; // Element doesn't exist yet
+        }
+        
+        // Update countdown display immediately
+        function updateDisplay() {
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+            countdownElement.innerHTML = `<i class="fas fa-hourglass-end"></i> Akan dihapus dalam ${timeStr}...`;
+            
+            if (remaining <= 0) {
+                clearInterval(countdownTimers[filename]);
+                delete countdownTimers[filename];
+                // Refresh grid after countdown expires
+                updateFileGrid();
+            }
+        }
+        
+        updateDisplay();
+        
+        // Update every second
+        countdownTimers[filename] = setInterval(() => {
+            remaining--;
+            updateDisplay();
+        }, 1000);
+    }
+
     // Update file grid
     function updateFileGrid() {
         fetch('api.php?action=get_files')
@@ -1576,6 +1770,7 @@ if (isset($_SESSION['last_job'])) {
                         const isPrinting = file.status === 'printing';
                         const isDone = file.status === 'completed' || file.status === 'done';
                         const isCancelled = file.status === 'cancelled';
+                        const isFailed = file.status === 'failed';
                         
                         if (isPrinting) {
                             // Show Cancel button only for printing files
@@ -1584,15 +1779,28 @@ if (isset($_SESSION['last_job'])) {
                                     <i class="fas fa-times"></i> Cancel
                                 </button>
                             `;
-                        } else if (isDone || isCancelled) {
-                            // Show delete only for completed/cancelled files
+                        } else if (isDone) {
+                            // Show Print Again and Delete for completed files
                             actionButtons = `
+                                <button class="btn btn-print" id="print-${htmlEscape(file.name)}" onclick="printFile('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-print"></i> Print Lagi
+                                </button>
+                                <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            `;
+                        } else if (isCancelled || isFailed) {
+                            // Show Try Again and Delete for cancelled/failed files
+                            actionButtons = `
+                                <button class="btn btn-retry" onclick="retryPrint('${htmlEscape(file.name)}')">
+                                    <i class="fas fa-redo"></i> Ulangi
+                                </button>
                                 <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
                             `;
                         } else {
-                            // Show Print and Delete for ready files (print is NOT disabled here, will be disabled on-click)
+                            // Show Print and Delete for ready files
                             actionButtons = `
                                 <button class="btn btn-print" id="print-${htmlEscape(file.name)}" onclick="printFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-print"></i> Print
@@ -1611,8 +1819,18 @@ if (isset($_SESSION['last_job'])) {
                             statusText = '⟳ PRINTING';
                         } else if (isCancelled) {
                             statusText = '✕ CANCELLED';
+                        } else if (isFailed) {
+                            statusText = '⚠ FAILED';
                         } else if (file.status === 'ready') {
                             statusText = '● READY';
+                        }
+                        
+                        // Countdown display for done files
+                        let countdownHTML = '';
+                        if (isDone) {
+                            countdownHTML = `<div class="file-countdown" id="countdown-${htmlEscape(file.name)}">
+                                <i class="fas fa-hourglass-end"></i> Akan dihapus dalam 60 detik...
+                            </div>`;
                         }
                         
                         return `
@@ -1623,12 +1841,34 @@ if (isset($_SESSION['last_job'])) {
                                 </div>
                                 <div class="file-size">${formatFileSize(file.size)}</div>
                                 <div class="file-status ${file.status}">${statusText}</div>
+                                ${countdownHTML}
                                 <div class="file-actions">
                                     ${actionButtons}
                                 </div>
                             </div>
                         `;
                     }).join('');
+                    
+                    // Start countdown timers for done files
+                    if (data.files && data.files.length > 0) {
+                        data.files.forEach(file => {
+                            if ((file.status === 'done' || file.status === 'completed') && !countdownTimers[file.name]) {
+                                // Fetch status to get countdown value
+                                fetch('api.php?action=check_status', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                    body: 'job_id=' + encodeURIComponent(file.name)
+                                })
+                                .then(res => res.json())
+                                .then(statusData => {
+                                    if (statusData.success && statusData.countdown !== undefined && statusData.countdown > 0) {
+                                        startCountdownTimer(file.name, statusData.countdown);
+                                    }
+                                })
+                                .catch(err => console.error('Error fetching countdown:', err));
+                            }
+                        });
+                    }
                 } else {
                     queueCountSpan.textContent = '0';
                     systemStatusSpan.textContent = 'Ready';
@@ -1659,9 +1899,21 @@ if (isset($_SESSION['last_job'])) {
                 if (data.success && data.logs && data.logs.length > 0) {
                     logsContainer.innerHTML = data.logs.map(log => {
                         let className = 'info';
+                        let clientColor = 'color-neutral';
+                        let clientName = extractClientName(log);
+                        
                         if (log.includes('[success]')) className = 'success';
                         else if (log.includes('[error]')) className = 'error';
-                        return `<div class="log-entry ${className}">${htmlEscape(log)}</div>`;
+                        
+                        // Get color class based on client name
+                        if (clientName) {
+                            clientColor = getClientColorClass(clientName);
+                        }
+                        
+                        // Format log entry with colored client name
+                        let formattedLog = formatLogEntry(log, clientName);
+                        
+                        return `<div class="log-entry ${className}" data-client-color="${clientColor}">${formattedLog}</div>`;
                     }).join('');
                     logsContainer.scrollTop = logsContainer.scrollHeight;
                 } else {
@@ -1730,6 +1982,13 @@ if (isset($_SESSION['last_job'])) {
                                 // Update UI immediately
                                 updateFileGrid();
                                 updateLogs();
+                                
+                                // Start countdown timer if available
+                                if (statusData.countdown !== undefined && statusData.countdown > 0) {
+                                    setTimeout(() => {
+                                        startCountdownTimer(filename, statusData.countdown);
+                                    }, 100);
+                                }
                                 
                                 // Restore normal intervals
                                 normalUpdateInterval = setInterval(() => {
@@ -1835,6 +2094,12 @@ if (isset($_SESSION['last_job'])) {
     // Delete file
     function deleteFile(filename) {
         if (confirm('Hapus file ini dari antrian?')) {
+            // Clear countdown timer if exists
+            if (countdownTimers[filename]) {
+                clearInterval(countdownTimers[filename]);
+                delete countdownTimers[filename];
+            }
+            
             fetch('api.php?action=delete_file', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -1845,6 +2110,31 @@ if (isset($_SESSION['last_job'])) {
                 alert(data.success ? '✓ File berhasil dihapus!' : '✗ Gagal menghapus');
                 updateFileGrid();
                 updateLogs();
+            });
+        }
+    }
+
+    // Retry print (for cancelled/failed files)
+    function retryPrint(filename) {
+        if (confirm('Ulangi pencetakan file ini?')) {
+            fetch('api.php?action=reset_file_status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'job_id=' + encodeURIComponent(filename)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✓ Siap untuk dicetak ulang');
+                    updateFileGrid();
+                    updateLogs();
+                } else {
+                    alert('✗ Gagal mereset file: ' + (data.message || 'Error'));
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('❌ Terjadi kesalahan saat mereset file');
             });
         }
     }

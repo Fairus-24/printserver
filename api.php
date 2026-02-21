@@ -40,6 +40,7 @@ function getUploadedFiles() {
     $files = [];
     $currentSession = session_id();
     
+    // First, add files from the uploads directory
     if (file_exists($uploadsDir)) {
         $fileList = scandir($uploadsDir);
         foreach ($fileList as $file) {
@@ -67,6 +68,35 @@ function getUploadedFiles() {
             }
         }
     }
+    
+    // Also add files from session that have been printed but don't exist in directory anymore
+    // (either 'done' or 'cancelled' status)
+    if (isset($_SESSION['files']) && is_array($_SESSION['files'])) {
+        foreach ($_SESSION['files'] as $fileName => $fileData) {
+            // Check if this file was already added from directory
+            $alreadyAdded = false;
+            foreach ($files as $addedFile) {
+                if ($addedFile['name'] === $fileName) {
+                    $alreadyAdded = true;
+                    break;
+                }
+            }
+            
+            // If not already added, add it if it's done or cancelled (file no longer in directory)
+            if (!$alreadyAdded && isset($fileData['owner_session']) && 
+                $fileData['owner_session'] === $currentSession &&
+                ($fileData['status'] === 'done' || $fileData['status'] === 'completed' || $fileData['status'] === 'cancelled')) {
+                $files[] = [
+                    'name' => $fileName,
+                    'originalName' => $fileData['original_name'] ?? $fileName,
+                    'size' => $fileData['size'] ?? 0,
+                    'uploadTime' => $fileData['upload_time'] ?? time(),
+                    'status' => $fileData['status']
+                ];
+            }
+        }
+    }
+    
     return $files;
 }
 
@@ -124,8 +154,48 @@ elseif ($action == 'delete_file') {
             echo json_encode(['success' => false, 'message' => 'Gagal menghapus file']);
         }
     } else {
-        echo json_encode(['success' => true, 'message' => 'File tidak ditemukan']);
+        // File doesn't exist in directory (completed/cancelled) - still remove from session
+        if (isset($_SESSION['files'][$jobId])) {
+            unset($_SESSION['files'][$jobId]);
+        }
+        // Remove from last_job if it matches
+        if (isset($_SESSION['last_job']) && $_SESSION['last_job']['job_id'] == $jobId) {
+            unset($_SESSION['last_job']);
+        }
+        addLog("Session file removed: $jobId", "delete");
+        echo json_encode(['success' => true, 'message' => 'File berhasil dihapus']);
     }
+    exit;
+}
+elseif ($action == 'reset_file_status') {
+    $jobId = $_POST['job_id'] ?? '';
+    
+    if (empty($jobId)) {
+        echo json_encode(['success' => false, 'message' => 'Job ID tidak ditemukan']);
+        exit;
+    }
+    
+    // Check ownership - only file owner can retry
+    if (!isset($_SESSION['files'][$jobId]) || $_SESSION['files'][$jobId]['owner_session'] !== session_id()) {
+        echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses untuk mengulangi file ini']);
+        exit;
+    }
+    
+    $jobFile = $uploadsDir . $jobId;
+    
+    // Check if file still exists in uploads directory
+    if (!file_exists($jobFile)) {
+        echo json_encode(['success' => false, 'message' => 'File tidak ditemukan. Silakan upload ulang.']);
+        exit;
+    }
+    
+    // Reset status to ready
+    $_SESSION['files'][$jobId]['status'] = 'ready';
+    $_SESSION['files'][$jobId]['status_time'] = time();
+    
+    addLog("File retry prepared: $jobId (Session: " . session_id() . ")", 'info');
+    
+    echo json_encode(['success' => true, 'message' => 'File siap untuk dicetak ulang']);
     exit;
 }
 elseif ($action == 'print_file') {
@@ -197,6 +267,20 @@ elseif ($action == 'print_file') {
             addLog("Print command output: " . trim($output), 'debug');
         }
         
+        // After printing is complete, wait a moment then mark as done
+        // DO NOT delete file immediately - keep it for 60 seconds with countdown
+        sleep(1); // Wait 1 second for printer queue to fully receive the job
+        
+        // Mark file as done with completion timestamp
+        if (file_exists($jobFile)) {
+            if (isset($_SESSION['files'][$jobId])) {
+                $_SESSION['files'][$jobId]['status'] = 'done';
+                $_SESSION['files'][$jobId]['status_time'] = time(); // Completion timestamp for countdown
+                $_SESSION['files'][$jobId]['completed_at'] = time();
+            }
+            // File stays in /uploads/ directory - will auto-delete after 60 seconds
+        }
+        
         // Delete temporary script file after execution (async)
         $deleteScriptCmd = 'powershell -NoProfile -Command "Start-Sleep -Milliseconds 500; Remove-Item -Path \'' . str_replace("'", "''", $scriptFile) . '\' -Force -ErrorAction SilentlyContinue"';
         pclose(popen($deleteScriptCmd, "r"));
@@ -234,38 +318,77 @@ elseif ($action == 'check_status') {
     }
     
     $jobFile = $uploadsDir . $jobId;
+    $autoDeleteSeconds = 60;
     
-    // Auto-cleanup session entries that are done for more than 30 seconds
-    foreach ($_SESSION['files'] as $fileName => &$fileData) {
+    // Check and auto-cleanup files that are done for more than 60 seconds
+    if (isset($_SESSION['files'][$jobId])) {
+        $fileData = &$_SESSION['files'][$jobId];
         if ($fileData['status'] === 'done' && isset($fileData['status_time'])) {
             $elapsed = time() - $fileData['status_time'];
-            if ($elapsed > 30) {
-                unset($_SESSION['files'][$fileName]);
+            
+            // Auto-delete file if countdown expired
+            if ($elapsed > $autoDeleteSeconds) {
+                if (file_exists($jobFile)) {
+                    @unlink($jobFile);
+                }
+                // Remove from session
+                unset($_SESSION['files'][$jobId]);
             }
         }
     }
-    unset($fileData);
     
     // Check current file status
     if (file_exists($jobFile)) {
-        // File still exists - still printing or waiting
-        echo json_encode([
-            'success' => true, 
-            'completed' => false,
-            'status' => 'printing',
-            'message' => 'Print dalam proses...'
-        ]);
-    } else {
-        // File doesn't exist - print completed
+        // File still exists
         if (isset($_SESSION['files'][$jobId])) {
-            $_SESSION['files'][$jobId]['status'] = 'done';
-            $_SESSION['files'][$jobId]['status_time'] = time();
+            $fileStatus = $_SESSION['files'][$jobId]['status'];
+            
+            if ($fileStatus === 'done') {
+                // Calculate remaining countdown time
+                $elapsed = time() - $_SESSION['files'][$jobId]['status_time'];
+                $remainingTime = max(0, $autoDeleteSeconds - $elapsed);
+                
+                echo json_encode([
+                    'success' => true,
+                    'completed' => true,
+                    'status' => 'done',
+                    'countdown' => $remainingTime,
+                    'message' => 'Print selesai!'
+                ]);
+            } else {
+                // Still printing
+                echo json_encode([
+                    'success' => true,
+                    'completed' => false,
+                    'status' => 'printing',
+                    'message' => 'Print dalam proses...'
+                ]);
+            }
+        } else {
+            // File exists but no session data - shouldn't happen
+            echo json_encode([
+                'success' => true,
+                'completed' => false,
+                'status' => 'printing',
+                'message' => 'Print dalam proses...'
+            ]);
+        }
+    } else {
+        // File doesn't exist in directory anymore
+        if (isset($_SESSION['files'][$jobId])) {
+            $fileStatus = $_SESSION['files'][$jobId]['status'];
+            if ($fileStatus !== 'done') {
+                // If not already done, mark as done now
+                $_SESSION['files'][$jobId]['status'] = 'done';
+                $_SESSION['files'][$jobId]['status_time'] = time();
+            }
         }
         
         echo json_encode([
-            'success' => true, 
+            'success' => true,
             'completed' => true,
             'status' => 'done',
+            'countdown' => 0,
             'message' => 'Print selesai!'
         ]);
     }
