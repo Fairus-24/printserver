@@ -75,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
                 'owner_session' => session_id()
             ];
             
-            addLog("File uploaded: {$finalFilename} (Session: " . session_id() . ")", 'success');
+            $clientName = $_SESSION['client_name'] ?? 'Unknown';
+            addLog("File uploaded: {$finalFilename} | Client: $clientName (Session: " . session_id() . ")", 'success');
             
             $status = 'success';
             $message = '✓ File berhasil di-upload! Silakan cetak file dari daftar antrian di bawah.';
@@ -831,6 +832,236 @@ if (isset($_SESSION['last_job'])) {
             box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
         }
 
+        /* Modal Size Variants */
+        .modal-sm .modal-content {
+            max-width: 450px;
+        }
+
+        /* Input Field Styling */
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Full Width Button */
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Tour Steps */
+        .tour-step {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            gap: 15px;
+            position: relative;
+        }
+
+        .tour-step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .tour-step h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tour-step p {
+            margin: 0;
+            color: var(--text-dark);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .tour-step.info-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-left: 4px solid var(--info-color);
+        }
+
+        /* Client Name Display */
+        .client-name-badge {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 10px;
+        }
+
+        /* Guided Tour Styles */
+        #guidedTourModal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #guidedTourModal.show {
+            display: block;
+        }
+
+        .guided-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .guided-spotlight {
+            position: fixed;
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 0 20px rgba(99, 102, 241, 0.2);
+            z-index: 1000;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), inset 0 0 20px rgba(99, 102, 241, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(99, 102, 241, 0.8), inset 0 0 30px rgba(99, 102, 241, 0.3);
+            }
+        }
+
+        @keyframes pulse-highlight {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        .guided-tooltip {
+            position: fixed;
+            z-index: 1001;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .guided-tooltip-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            max-width: 350px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .guided-tooltip-content h3 {
+            margin: 0 0 12px 0;
+            color: var(--primary-color);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guided-tooltip-content p {
+            margin: 0;
+            color: var(--text-dark);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .guided-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .guided-actions .btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .guided-actions .btn-primary {
+            background: var(--border-color);
+            color: var(--text-light);
+        }
+
+        .guided-actions .btn-primary:hover {
+            background: #cbd5e1;
+        }
+
+        .guided-actions .btn-info {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .guided-actions .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Arrow pointing to button */
+        .guided-tooltip::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-left: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            transform: rotate(45deg);
+            z-index: 1002;
+        }
+
         @media (max-width: 768px) {
             .modal-content {
                 width: 95%;
@@ -951,6 +1182,116 @@ if (isset($_SESSION['last_job'])) {
             </div>
         </div>
 
+        <!-- Client Name Input Modal -->
+        <div class="modal" id="nameModal">
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user"></i> Daftarkan Nama Anda</h2>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom: 20px; text-align: center; color: var(--text-light);">
+                        Selamat datang! Silakan masukkan nama Anda untuk memulai penggunaan sistem print server ini.
+                    </p>
+                    <form id="nameForm">
+                        <input 
+                            type="text" 
+                            id="clientName" 
+                            class="input-field" 
+                            placeholder="Masukkan nama Anda..." 
+                            required 
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fas fa-check"></i> Lanjutkan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tour/Arahan Penggunaan Modal -->
+        <div class="modal" id="tourModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-graduation-cap"></i> Panduan Penggunaan Sistem</h2>
+                    <button class="modal-close" onclick="closeTourModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="tour-step">
+                        <div class="tour-step-number">1</div>
+                        <h3><i class="fas fa-cloud-upload-alt"></i> Upload File PDF</h3>
+                        <p>Klik area "Upload File PDF" atau drag-drop file PDF yang ingin Anda cetak. Pastikan file berformat PDF dan ukuran tidak melebihi 100MB.</p>
+                    </div>
+
+                    <div class="tour-step">
+                        <div class="tour-step-number">2</div>
+                        <h3><i class="fas fa-eye"></i> Preview File</h3>
+                        <p>Setelah memilih file, Anda dapat preview file dengan mengklik ikon mata. Pastikan tampilan file sudah sesuai sebelum mencetak.</p>
+                    </div>
+
+                    <div class="tour-step">
+                        <div class="tour-step-number">3</div>
+                        <h3><i class="fas fa-upload"></i> Konfirmasi Upload</h3>
+                        <p>Klik tombol "Upload File" untuk mengirim file ke server untuk diproses. Tunggu hingga file muncul di daftar "Antrian Cetak".</p>
+                    </div>
+
+                    <div class="tour-step">
+                        <div class="tour-step-number">4</div>
+                        <h3><i class="fas fa-print"></i> Cetak File</h3>
+                        <p>File yang sudah diupload akan muncul di "Antrian Cetak" dengan status "● READY". Klik tombol "Print" untuk mulai mencetak.</p>
+                    </div>
+
+                    <div class="tour-step">
+                        <div class="tour-step-number">5</div>
+                        <h3><i class="fas fa-spinner"></i> Monitor Status</h3>
+                        <p>Saat printing berlangsung, status akan berubah menjadi "⟳ PRINTING". Anda dapat membatalkan dengan mengklik tombol "Cancel" jika diperlukan.</p>
+                    </div>
+
+                    <div class="tour-step">
+                        <div class="tour-step-number">6</div>
+                        <h3><i class="fas fa-check-circle"></i> Selesai</h3>
+                        <p>Setelah selesai, status berubah menjadi "✓ DONE". File akan otomatis dihapus dari antrian setelah 30 detik. Ambil hasil cetakan dari printer.</p>
+                    </div>
+
+                    <div class="tour-step info-box" style="margin-top: 20px;">
+                        <i class="fas fa-lightbulb"></i>
+                        <p><strong>Tips Penting:</strong> <br>
+                        • Periksa kembali pembaca ketentuan sebelum mencetak<br>
+                        • Gunakan file PDF dengan resolusi 300 DPI untuk hasil terbaik<br>
+                        • Jangan menutup halaman saat proses pencetakan</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeTourModal()">
+                        <i class="fas fa-check"></i> Saya Sudah Mengerti
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guided Tour Modal (Highlight Info Button) -->
+        <div class="modal" id="guidedTourModal">
+            <div class="guided-overlay"></div>
+            <div class="guided-spotlight"></div>
+            <div class="guided-tooltip">
+                <div class="guided-tooltip-content">
+                    <h3><i class="fas fa-mouse-pointer"></i> Penting!</h3>
+                    <p>Klik tombol <strong>(?)</strong> di samping kanan "Upload File PDF" untuk membaca <strong>Syarat & Ketentuan Pencetakan</strong> sebelum mencetak.</p>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: 10px;">Ini wajib dibaca minimal sekali sebelum Anda bisa melakukan pencetakan.</p>
+                    <div class="guided-actions">
+                        <button class="btn btn-primary" onclick="skipGuidedTour()">
+                            <i class="fas fa-forward"></i> Lewati Arahan
+                        </button>
+                        <button class="btn btn-info" onclick="focusInfoButton()">
+                            <i class="fas fa-check"></i> Klik Tombol (?)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Rules Information Modal -->
         <div class="modal" id="rulesModal">
             <div class="modal-content">
@@ -1044,6 +1385,19 @@ if (isset($_SESSION['last_job'])) {
     const footerTimeSpan = document.getElementById('footerTime');
     const rulesModal = document.getElementById('rulesModal');
     const infoBtn = document.getElementById('infoBtn');
+    const nameModal = document.getElementById('nameModal');
+    const tourModal = document.getElementById('tourModal');
+    const nameForm = document.getElementById('nameForm');
+    const clientNameInput = document.getElementById('clientName');
+
+    // Client name tracking
+    let clientName = localStorage.getItem('clientName');
+    let hasReadRules = localStorage.getItem('hasReadRules') === 'true';
+    let hasSeenGuide = localStorage.getItem('hasSeenGuide') === 'true';
+    let currentPrintingFile = null; // Track currently printing file
+    let printStatusCheckInterval = null;
+    let normalUpdateInterval = null;
+    let logsOnlyInterval = null;
 
     // Modal Functions
     function openRulesModal() {
@@ -1052,19 +1406,129 @@ if (isset($_SESSION['last_job'])) {
 
     function closeRulesModal() {
         rulesModal.classList.remove('show');
+        // Mark as read when modal is closed
+        localStorage.setItem('hasReadRules', 'true');
+        hasReadRules = true;
     }
+
+    function openTourModal() {
+        tourModal.classList.add('show');
+    }
+
+    function closeTourModal() {
+        tourModal.classList.remove('show');
+        // Show guided tour if user hasn't seen it yet
+        if (!hasSeenGuide) {
+            setTimeout(() => {
+                openGuidedTour();
+            }, 500);
+        }
+    }
+
+    function openNameModal() {
+        nameModal.classList.add('show');
+    }
+
+    function closeNameModal() {
+        nameModal.classList.remove('show');
+    }
+
+    // Guided Tour Functions
+    const guidedTourModal = document.getElementById('guidedTourModal');
+    let guidedTourActive = false;
+
+    function openGuidedTour() {
+        guidedTourModal.classList.add('show');
+        guidedTourActive = true;
+        highlightInfoButton();
+    }
+
+    function closeGuidedTour() {
+        guidedTourModal.classList.remove('show');
+        guidedTourActive = false;
+    }
+
+    function highlightInfoButton() {
+        if (!infoBtn) return;
+        
+        const rect = infoBtn.getBoundingClientRect();
+        const spotlight = document.querySelector('.guided-spotlight');
+        const tooltip = document.querySelector('.guided-tooltip');
+        
+        // Position spotlight
+        const spotlightSize = 120;
+        spotlight.style.left = (rect.left + rect.width / 2 - spotlightSize / 2) + 'px';
+        spotlight.style.top = (rect.top + rect.height / 2 - spotlightSize / 2) + 'px';
+        spotlight.style.width = spotlightSize + 'px';
+        spotlight.style.height = spotlightSize + 'px';
+        
+        // Position tooltip
+        tooltip.style.left = (rect.left - 200) + 'px';
+        tooltip.style.top = (rect.top - 180) + 'px';
+    }
+
+    function skipGuidedTour() {
+        closeGuidedTour();
+        localStorage.setItem('hasSeenGuide', 'true');
+    }
+
+    function focusInfoButton() {
+        closeGuidedTour();
+        localStorage.setItem('hasSeenGuide', 'true');
+        // Highlight and auto-click or focus on the button
+        infoBtn.style.animation = 'pulse-highlight 0.6s ease-in-out';
+        setTimeout(() => {
+            openRulesModal();
+        }, 150);
+    }
+
+    // Reposition spotlight on window resize
+    window.addEventListener('resize', () => {
+        if (guidedTourActive) {
+            highlightInfoButton();
+        }
+    });
 
     // Close modal when clicking outside of it
     window.addEventListener('click', (event) => {
         if (event.target === rulesModal) {
             closeRulesModal();
         }
+        if (event.target === tourModal) {
+            // Don't allow closing tour by clicking outside
+            return;
+        }
     });
 
     // Close modal with Escape key
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            closeRulesModal();
+            if (rulesModal.classList.contains('show')) {
+                closeRulesModal();
+            }
+        }
+    });
+
+    // Name form submission
+    nameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = clientNameInput.value.trim();
+        if (name.length > 0) {
+            clientName = name;
+            localStorage.setItem('clientName', clientName);
+            closeNameModal();
+            
+            // Show tour modal
+            setTimeout(() => {
+                openTourModal();
+            }, 300);
+            
+            // Send name to server to save in database
+            fetch('api.php?action=save_client_name', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'client_name=' + encodeURIComponent(clientName)
+            }).catch(err => console.error('Error saving client name:', err));
         }
     });
 
@@ -1073,6 +1537,13 @@ if (isset($_SESSION['last_job'])) {
         e.preventDefault();
         openRulesModal();
     });
+
+    // Check if client is new and show name modal
+    function checkClientStatus() {
+        if (!clientName) {
+            openNameModal();
+        }
+    }
 
     // Format file size
     function formatFileSize(bytes) {
@@ -1102,32 +1573,28 @@ if (isset($_SESSION['last_job'])) {
                     fileGrid.innerHTML = data.files.map(file => {
                         // Determine button display based on status
                         let actionButtons = '';
+                        const isPrinting = file.status === 'printing';
+                        const isDone = file.status === 'completed' || file.status === 'done';
+                        const isCancelled = file.status === 'cancelled';
                         
-                        if (file.status === 'printing') {
+                        if (isPrinting) {
                             // Show Cancel button only for printing files
                             actionButtons = `
                                 <button class="btn btn-cancel" onclick="cancelPrint('${htmlEscape(file.name)}')">
                                     <i class="fas fa-times"></i> Cancel
                                 </button>
                             `;
-                        } else if (file.status === 'completed' || file.status === 'done') {
-                            // Show delete only for completed files
-                            actionButtons = `
-                                <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
-                                    <i class="fas fa-trash"></i> Hapus
-                                </button>
-                            `;
-                        } else if (file.status === 'cancelled') {
-                            // Show delete only for cancelled files
+                        } else if (isDone || isCancelled) {
+                            // Show delete only for completed/cancelled files
                             actionButtons = `
                                 <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
                             `;
                         } else {
-                            // Show Print and Delete for ready files
+                            // Show Print and Delete for ready files (print is NOT disabled here, will be disabled on-click)
                             actionButtons = `
-                                <button class="btn btn-print" onclick="printFile('${htmlEscape(file.name)}')">
+                                <button class="btn btn-print" id="print-${htmlEscape(file.name)}" onclick="printFile('${htmlEscape(file.name)}')">
                                     <i class="fas fa-print"></i> Print
                                 </button>
                                 <button class="btn btn-delete" onclick="deleteFile('${htmlEscape(file.name)}')">
@@ -1138,18 +1605,18 @@ if (isset($_SESSION['last_job'])) {
                         
                         // Determine status display text
                         let statusText = file.status.toUpperCase();
-                        if (file.status === 'done' || file.status === 'completed') {
+                        if (isDone) {
                             statusText = '✓ DONE';
-                        } else if (file.status === 'printing') {
+                        } else if (isPrinting) {
                             statusText = '⟳ PRINTING';
-                        } else if (file.status === 'cancelled') {
+                        } else if (isCancelled) {
                             statusText = '✕ CANCELLED';
                         } else if (file.status === 'ready') {
                             statusText = '● READY';
                         }
                         
                         return `
-                            <div class="file-card">
+                            <div class="file-card" id="file-card-${htmlEscape(file.name)}">
                                 <span class="file-icon"><i class="fas fa-file-pdf"></i></span>
                                 <div class="file-name" title="${htmlEscape(file.originalName)}">
                                     ${htmlEscape(file.originalName)}
@@ -1206,23 +1673,121 @@ if (isset($_SESSION['last_job'])) {
 
     // Print file
     function printFile(filename) {
+        // Validasi bahwa user sudah membaca rules
+        if (!hasReadRules) {
+            alert('⚠️ Anda harus membaca syarat & ketentuan terlebih dahulu sebelum mencetak!\n\nSilakan klik tombol (?) untuk membaca ketentuan.');
+            openRulesModal();
+            return;
+        }
+
         if (confirm('Cetak file ini?')) {
+            // Disable print button immediately
+            const printBtn = document.getElementById(`print-${filename}`);
+            if (printBtn) {
+                printBtn.disabled = true;
+                printBtn.style.opacity = '0.5';
+                printBtn.style.cursor = 'not-allowed';
+            }
+
+            // Track current printing file
+            currentPrintingFile = filename;
+
+            // Clear normal intervals when print starts (to avoid multiple overlapping updates)
+            if (normalUpdateInterval) clearInterval(normalUpdateInterval);
+            if (logsOnlyInterval) clearInterval(logsOnlyInterval);
+
             fetch('api.php?action=print_file', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'job_id=' + encodeURIComponent(filename)
+                body: 'job_id=' + encodeURIComponent(filename) + '&client_name=' + encodeURIComponent(clientName || 'Unknown')
             })
             .then(res => res.json())
             .then(data => {
-                alert(data.success ? '✓ Pencetakan dimulai!' : '✗ ' + (data.message || 'Gagal'));
-                updateFileGrid();
-                updateLogs();
-                // Update more frequently while printing
-                clearInterval(printCheckInterval);
-                printCheckInterval = setInterval(() => {
+                if (data.success) {
+                    alert('✓ Pencetakan dimulai!');
+                    // Update immediately and more frequently while printing
                     updateFileGrid();
                     updateLogs();
-                }, 1000); // Update every 1 second while printing
+                    
+                    // Clear old interval
+                    if (printStatusCheckInterval) clearInterval(printStatusCheckInterval);
+                    
+                    // Start checking status more frequently (every 500ms for faster realtime)
+                    printStatusCheckInterval = setInterval(() => {
+                        fetch('api.php?action=check_status', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: 'job_id=' + encodeURIComponent(filename)
+                        })
+                        .then(res => res.json())
+                        .then(statusData => {
+                            if (statusData.success && statusData.completed) {
+                                // Print completed!
+                                clearInterval(printStatusCheckInterval);
+                                printStatusCheckInterval = null;
+                                currentPrintingFile = null;
+                                
+                                // Update UI immediately
+                                updateFileGrid();
+                                updateLogs();
+                                
+                                // Restore normal intervals
+                                normalUpdateInterval = setInterval(() => {
+                                    updateFileGrid();
+                                    updateLogs();
+                                }, 5000);
+                                
+                                logsOnlyInterval = setInterval(() => {
+                                    updateLogs();
+                                }, 3000);
+                            } else {
+                                // Still printing - keep updating grid
+                                updateFileGrid();
+                                updateLogs();
+                            }
+                        });
+                    }, 500); // Check every 500ms for faster sync
+                } else {
+                    alert('✗ ' + (data.message || 'Gagal'));
+                    // Re-enable button on error
+                    if (printBtn) {
+                        printBtn.disabled = false;
+                        printBtn.style.opacity = '1';
+                        printBtn.style.cursor = 'pointer';
+                    }
+                    currentPrintingFile = null;
+                    
+                    // Restore normal intervals on error
+                    normalUpdateInterval = setInterval(() => {
+                        updateFileGrid();
+                        updateLogs();
+                    }, 5000);
+                    
+                    logsOnlyInterval = setInterval(() => {
+                        updateLogs();
+                    }, 3000);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('❌ Terjadi kesalahan saat mengirim perintah print');
+                // Re-enable button on error
+                if (printBtn) {
+                    printBtn.disabled = false;
+                    printBtn.style.opacity = '1';
+                    printBtn.style.cursor = 'pointer';
+                }
+                currentPrintingFile = null;
+                
+                // Restore normal intervals on error
+                normalUpdateInterval = setInterval(() => {
+                    updateFileGrid();
+                    updateLogs();
+                }, 5000);
+                
+                logsOnlyInterval = setInterval(() => {
+                    updateLogs();
+                }, 3000);
             });
         }
     }
@@ -1238,13 +1803,31 @@ if (isset($_SESSION['last_job'])) {
             .then(res => res.json())
             .then(data => {
                 alert(data.success ? '✓ Pencetakan dibatalkan!' : '✗ ' + (data.message || 'Gagal'));
-                clearInterval(printCheckInterval);
-                printCheckInterval = setInterval(() => {
-                    updateFileGrid();
-                    updateLogs();
-                }, 5000); // Back to normal interval
+                
+                // Clear interval immediately
+                if (printStatusCheckInterval) {
+                    clearInterval(printStatusCheckInterval);
+                    printStatusCheckInterval = null;
+                }
+                currentPrintingFile = null;
+                
+                // Update UI immediately
                 updateFileGrid();
                 updateLogs();
+                
+                // Restore normal intervals
+                normalUpdateInterval = setInterval(() => {
+                    updateFileGrid();
+                    updateLogs();
+                }, 5000);
+                
+                logsOnlyInterval = setInterval(() => {
+                    updateLogs();
+                }, 3000);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('❌ Terjadi kesalahan saat membatalkan print');
             });
         }
     }
@@ -1390,18 +1973,21 @@ if (isset($_SESSION['last_job'])) {
     }, 1000);
 
     // Initialize
-    let printCheckInterval; // Global variable for print checking interval
+    // Check if client is new
+    checkClientStatus();
     
     updateFileGrid();
     updateLogs();
     
-    // Setup normal update intervals
-    printCheckInterval = setInterval(() => {
+    // Setup normal update intervals (slower when not printing)
+    normalUpdateInterval = setInterval(() => {
         updateFileGrid();
         updateLogs();
-    }, 5000);
+    }, 5000); // Every 5 seconds
     
-    setInterval(updateLogs, 3000);
+    logsOnlyInterval = setInterval(() => {
+        updateLogs();
+    }, 3000); // Every 3 seconds for logs
 </script>
 
 </body>

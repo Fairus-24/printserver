@@ -70,7 +70,19 @@ function getUploadedFiles() {
     return $files;
 }
 
-if ($action == 'get_files') {
+if ($action == 'save_client_name') {
+    $clientName = $_POST['client_name'] ?? 'Unknown';
+    
+    // Save to session
+    $_SESSION['client_name'] = $clientName;
+    
+    // Log client registration
+    addLog("Client registered: $clientName (Session: " . session_id() . ")", 'info');
+    
+    echo json_encode(['success' => true, 'message' => 'Nama client tersimpan']);
+    exit;
+}
+elseif ($action == 'get_files') {
     $files = getUploadedFiles();
     $queueCount = getQueueCount();
     echo json_encode([
@@ -118,6 +130,7 @@ elseif ($action == 'delete_file') {
 }
 elseif ($action == 'print_file') {
     $jobId = $_POST['job_id'] ?? '';
+    $clientName = $_POST['client_name'] ?? ($_SESSION['client_name'] ?? 'Unknown');
     
     if (empty($jobId)) {
         echo json_encode(['success' => false, 'message' => 'Job ID tidak ditemukan']);
@@ -207,7 +220,7 @@ elseif ($action == 'print_file') {
     if (!empty($output)) {
         $debugInfo .= " | Output: " . substr($output, 0, 100);
     }
-    addLog("Print started: $filename (Session: " . session_id() . ") - $debugInfo", 'success');
+    addLog("Print started: $filename | Client: $clientName (Session: " . session_id() . ") - $debugInfo", 'success');
     
     echo json_encode(['success' => true, 'message' => 'Pencetakan dimulai...']);
     exit;
