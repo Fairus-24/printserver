@@ -626,6 +626,229 @@ if (isset($_SESSION['last_job'])) {
                 transform: rotate(360deg);
             }
         }
+
+        /* Info Button & Section Title */
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .section-title-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-info {
+            background: none;
+            border: none;
+            color: var(--info-color);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        .btn-info:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px;
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .rules-section {
+            margin-bottom: 25px;
+        }
+
+        .rules-section h3 {
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rules-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rules-section li {
+            padding: 8px 0;
+            padding-left: 20px;
+            color: var(--text-dark);
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .rules-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-left: 4px solid var(--info-color);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .info-box i {
+            color: var(--info-color);
+            font-size: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .modal-header h2 {
+                font-size: 18px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .rules-section {
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -664,8 +887,13 @@ if (isset($_SESSION['last_job'])) {
 
             <!-- Upload Section -->
             <div class="section-title">
-                <i class="fas fa-cloud-upload-alt"></i>
-                Upload File PDF
+                <div class="section-title-content">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload File PDF
+                </div>
+                <button class="btn-info" id="infoBtn" title="Lihat syarat dan ketentuan">
+                    <i class="fas fa-question-circle"></i>
+                </button>
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="upload-box" id="uploadBox">
@@ -699,8 +927,10 @@ if (isset($_SESSION['last_job'])) {
 
             <!-- Print Queue Section -->
             <div class="section-title">
-                <i class="fas fa-list"></i>
-                Antrian Cetak
+                <div class="section-title-content">
+                    <i class="fas fa-list"></i>
+                    Antrian Cetak
+                </div>
             </div>
             <div class="file-grid" id="fileGrid">
                 <div class="empty-state">
@@ -711,11 +941,85 @@ if (isset($_SESSION['last_job'])) {
 
             <!-- Logs Section -->
             <div class="section-title">
-                <i class="fas fa-history"></i>
-                Log Aktivitas
+                <div class="section-title-content">
+                    <i class="fas fa-history"></i>
+                    Log Aktivitas
+                </div>
             </div>
             <div class="logs-container" id="logsContainer">
                 <div class="log-entry info">⏳ Memuat log aktivitas...</div>
+            </div>
+        </div>
+
+        <!-- Rules Information Modal -->
+        <div class="modal" id="rulesModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-info-circle"></i> Syarat & Ketentuan Pencetakan</h2>
+                    <button class="modal-close" onclick="closeRulesModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="rules-section">
+                        <h3><i class="fas fa-file-pdf"></i> Format File</h3>
+                        <ul>
+                            <li>Hanya file <strong>PDF</strong> yang diperbolehkan</li>
+                            <li>Ukuran file maksimal <strong>100 MB</strong></li>
+                            <li>Pastikan file PDF sudah valid dan tidak corrupt</li>
+                        </ul>
+                    </div>
+
+                    <div class="rules-section">
+                        <h3><i class="fas fa-file-alt"></i> Kertas & Ukuran</h3>
+                        <ul>
+                            <li>Gunakan kertas standar <strong>A4 (210 x 297 mm)</strong></li>
+                            <li>PDF harus disetting untuk ukuran halaman A4</li>
+                            <li>Hindari scaling otomatis yang dapat menyebabkan pemotongan</li>
+                            <li>Margin minimal: 0,5 cm dari tepi kertas</li>
+                        </ul>
+                    </div>
+
+                    <div class="rules-section">
+                        <h3><i class="fas fa-palette"></i> Kualitas & Warna</h3>
+                        <ul>
+                            <li>Gunakan <strong>resolusi minimal 300 DPI</strong> untuk hasil terbaik</li>
+                            <li>Cetak warna: Gunakan mode <strong>RGB atau CMYK</strong> yang tepat</li>
+                            <li>Pastikan semua text dan gambar terlihat jelas di preview</li>
+                            <li>Hindari menggunakan font custom yang tidak embedded</li>
+                        </ul>
+                    </div>
+
+                    <div class="rules-section">
+                        <h3><i class="fas fa-cogs"></i> Pengaturan & Proses</h3>
+                        <ul>
+                            <li>Sistem akan otomatis memproses file sesuai urutan antrian</li>
+                            <li>Waktu proses cetak: <strong>5 - 30 detik</strong> tergantung ukuran file</li>
+                            <li>Anda dapat membatalkan cetak sebelum proses selesai</li>
+                            <li>File otomatis dihapus setelah pencetakan selesai</li>
+                        </ul>
+                    </div>
+
+                    <div class="rules-section">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Batasan & Larangan</h3>
+                        <ul>
+                            <li>Dilarang mengupload file yang bukan PDF</li>
+                            <li>Dilarang mengupload file dengan konten pornografi atau ilegal</li>
+                            <li>Maksimal print per hari: <strong>100 halaman</strong></li>
+                            <li>Tunggu antrian sebelumnya selesai sebelum cetak file baru</li>
+                        </ul>
+                    </div>
+
+                    <div class="rules-section info-box">
+                        <i class="fas fa-lightbulb"></i>
+                        <p><strong>Tips:</strong> Untuk hasil terbaik, gunakan aplikasi Adobe Reader atau PDF viewer profesional lainnya untuk preview file sebelum mencetak.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeRulesModal()">
+                        <i class="fas fa-check"></i> Saya Mengerti
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -738,6 +1042,37 @@ if (isset($_SESSION['last_job'])) {
     const systemStatusSpan = document.getElementById('systemStatus');
     const currentTimeSpan = document.getElementById('currentTime');
     const footerTimeSpan = document.getElementById('footerTime');
+    const rulesModal = document.getElementById('rulesModal');
+    const infoBtn = document.getElementById('infoBtn');
+
+    // Modal Functions
+    function openRulesModal() {
+        rulesModal.classList.add('show');
+    }
+
+    function closeRulesModal() {
+        rulesModal.classList.remove('show');
+    }
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target === rulesModal) {
+            closeRulesModal();
+        }
+    });
+
+    // Close modal with Escape key
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeRulesModal();
+        }
+    });
+
+    // Info button click event
+    infoBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openRulesModal();
+    });
 
     // Format file size
     function formatFileSize(bytes) {

@@ -47,10 +47,12 @@ function getUploadedFiles() {
                 $filePath = $uploadsDir . $file;
                 $status = 'ready';
                 $ownerSession = null;
+                $statusTime = 0;
                 
                 if (isset($_SESSION['files'][$file])) {
                     $status = $_SESSION['files'][$file]['status'];
                     $ownerSession = $_SESSION['files'][$file]['owner_session'] ?? null;
+                    $statusTime = $_SESSION['files'][$file]['status_time'] ?? time();
                 }
                 
                 if ($ownerSession === $currentSession) {
@@ -144,6 +146,7 @@ elseif ($action == 'print_file') {
     // Update status to printing
     if (isset($_SESSION['files'][$jobId])) {
         $_SESSION['files'][$jobId]['status'] = 'printing';
+        $_SESSION['files'][$jobId]['status_time'] = time();
     }
     
     // Set as active job
@@ -219,30 +222,37 @@ elseif ($action == 'check_status') {
     
     $jobFile = $uploadsDir . $jobId;
     
-    // Auto-delete if printing duration exceeds 30 seconds
-    if (isset($_SESSION['last_job']) && $_SESSION['last_job']['job_id'] == $jobId) {
-        $elapsed = time() - $_SESSION['last_job']['start_time'];
-        if ($elapsed > 30) {
-            // File should be deleted by now
-            if (file_exists($jobFile)) {
-                unlink($jobFile);
-                if (isset($_SESSION['last_job'])) {
-                    unset($_SESSION['last_job']);
-                }
+    // Auto-cleanup session entries that are done for more than 30 seconds
+    foreach ($_SESSION['files'] as $fileName => &$fileData) {
+        if ($fileData['status'] === 'done' && isset($fileData['status_time'])) {
+            $elapsed = time() - $fileData['status_time'];
+            if ($elapsed > 30) {
+                unset($_SESSION['files'][$fileName]);
             }
         }
     }
+    unset($fileData);
     
+    // Check current file status
     if (file_exists($jobFile)) {
+        // File still exists - still printing or waiting
         echo json_encode([
             'success' => true, 
             'completed' => false,
+            'status' => 'printing',
             'message' => 'Print dalam proses...'
         ]);
     } else {
+        // File doesn't exist - print completed
+        if (isset($_SESSION['files'][$jobId])) {
+            $_SESSION['files'][$jobId]['status'] = 'done';
+            $_SESSION['files'][$jobId]['status_time'] = time();
+        }
+        
         echo json_encode([
             'success' => true, 
             'completed' => true,
+            'status' => 'done',
             'message' => 'Print selesai!'
         ]);
     }
