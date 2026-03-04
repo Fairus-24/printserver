@@ -16,6 +16,22 @@ if (!$isAuthenticated) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen User - Print Server</title>
+    <meta name="description" content="Panel manajemen user FIK Smart Print Server untuk admin: tambah, edit, nonaktifkan, dan hapus akun login SQL.">
+    <meta name="theme-color" content="#c7f9cc">
+    <meta name="msapplication-TileColor" content="#c7f9cc">
+    <link rel="icon" type="image/svg+xml" href="assets/brand-icon.svg">
+    <link rel="apple-touch-icon" href="assets/brand-icon.svg">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Manajemen User - FIK Smart Print Server">
+    <meta property="og:description" content="Kelola akun user berbasis SQL dengan kontrol role dan status aktif.">
+    <meta property="og:image" content="assets/meta-card.svg">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Manajemen User - FIK Smart Print Server">
+    <meta name="twitter:description" content="Kelola akun user berbasis SQL dengan kontrol role dan status aktif.">
+    <meta name="twitter:image" content="assets/meta-card.svg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {

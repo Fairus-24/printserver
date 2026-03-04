@@ -127,6 +127,24 @@ if (isset($_SESSION['last_job'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIK Smart Print Server - Professional Print Management</title>
+    <meta name="description" content="FIK Smart Print Server: antrian print PDF realtime multi-user dengan login SQL, queue global, status global, dan log print terpusat.">
+    <meta name="theme-color" content="#667eea">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/svg+xml" href="assets/brand-icon.svg">
+    <link rel="apple-touch-icon" href="assets/brand-icon.svg">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="FIK Smart Print Server">
+    <meta property="og:description" content="Queue print PDF realtime multi-user dengan status global dan log print yang jelas.">
+    <meta property="og:image" content="assets/meta-card.svg">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FIK Smart Print Server">
+    <meta name="twitter:description" content="Queue print PDF realtime multi-user dengan status global dan log print yang jelas.">
+    <meta name="twitter:image" content="assets/meta-card.svg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {

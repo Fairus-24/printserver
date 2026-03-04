@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">FIK Smart Print Server</title>
+  <desc id="desc">Kartu metadata untuk FIK Smart Print Server.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea" />
+      <stop offset="100%" stop-color="#764ba2" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#e2e8f0" stop-opacity="0.96" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="1100" cy="120" r="180" fill="#ffffff" fill-opacity="0.09" />
+  <circle cx="1040" cy="540" r="160" fill="#ffffff" fill-opacity="0.08" />
+
+  <rect x="72" y="72" width="1056" height="486" rx="40" fill="url(#panel)" />
+
+  <g transform="translate(118 136)">
+    <rect width="220" height="220" rx="48" fill="#667eea" />
+    <rect x="56" y="38" width="108" height="60" rx="10" fill="#ffffff" />
+    <rect x="42" y="86" width="136" height="106" rx="18" fill="#ffffff" />
+    <rect x="66" y="136" width="88" height="34" rx="8" fill="#22d3ee" />
+    <circle cx="72" cy="114" r="4.5" fill="#34d399" />
+    <circle cx="88" cy="114" r="4.5" fill="#f59e0b" />
+    <circle cx="104" cy="114" r="4.5" fill="#60a5fa" />
+  </g>
+
+  <g transform="translate(390 156)">
+    <text x="0" y="70" font-size="68" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#1e293b">
+      FIK Smart Print Server
+    </text>
+    <text x="0" y="136" font-size="34" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#334155">
+      Queue Realtime | Multi User | SQL Login
+    </text>
+    <text x="0" y="196" font-size="30" font-family="Segoe UI, Arial, sans-serif" fill="#475569">
+      Print PDF terkelola dengan status global dan log print terpusat.
+    </text>
+  </g>
+
+  <g transform="translate(390 410)">
+    <rect x="0" y="0" width="220" height="58" rx="16" fill="#0ea5e9" />
+    <text x="110" y="38" text-anchor="middle" font-size="28" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">
+      SENT
+    </text>
+
+    <rect x="246" y="0" width="220" height="58" rx="16" fill="#3b82f6" />
+    <text x="356" y="38" text-anchor="middle" font-size="28" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">
+      QUEUE
+    </text>
+
+    <rect x="492" y="0" width="220" height="58" rx="16" fill="#f59e0b" />
+    <text x="602" y="38" text-anchor="middle" font-size="28" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">
+      PRINT
+    </text>
+
+    <rect x="738" y="0" width="220" height="58" rx="16" fill="#10b981" />
+    <text x="848" y="38" text-anchor="middle" font-size="28" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">
+      DONE
+    </text>
+  </g>
+</svg>

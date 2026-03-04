@@ -4,6 +4,10 @@ Sistem antrian print PDF berbasis web (PHP + MySQL) untuk multi-user, dengan log
 
 Dokumen ini menjelaskan alur kerja nyata aplikasi sesuai kode saat ini: instalasi dari nol, konfigurasi, cara pakai, arsitektur queue worker, endpoint API, dan troubleshooting.
 
+## Dokumen Tambahan
+
+- Setup Linux/Unix: [LINUX_SETUP.md](LINUX_SETUP.md)
+
 ## Ringkasan Fitur
 
 - Login menggunakan tabel SQL `users` (`nim_nipy` + `password_hash`)
