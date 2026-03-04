@@ -1,1 +1,4 @@
 /SETUP_GUIDE.txt
+/.env
+/logs/*.log
+/uploads/
